@@ -27,7 +27,7 @@ jobs:
 
       - name: Overlay JSP files on soundness-fixed dependency set
         run: |
-                    cp launcher/candidate/*.lean work/
+          cp launcher/candidate/*.lean work/
           cp launcher/run_remote_compile_v11.sh work/
           chmod +x work/run_remote_compile_v11.sh
           echo "PrimeGapsLib source commit:"
