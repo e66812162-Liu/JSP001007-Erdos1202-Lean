@@ -28,15 +28,27 @@ private lemma log_arch51_upper_v3
     Real.log (400 * (t : ℝ)^4) ≤ 5 * t := by
   have htpos : (0 : ℝ) < t := by positivity
   have hlog400 : Real.log (400 : ℝ) ≤ 399 := by
-    simpa using
-      (Real.log_le_sub_one_of_pos (show (0 : ℝ) < 400 by norm_num))
+    have h :=
+      Real.log_le_sub_one_of_pos (show (0 : ℝ) < 400 by norm_num)
+    norm_num at h
+    exact h
   have hlogt : Real.log (t : ℝ) ≤ (t : ℝ) - 1 := by
     exact Real.log_le_sub_one_of_pos htpos
   have htR : (395 : ℝ) ≤ (t : ℝ) := by
     exact_mod_cast ht
-  rw [Real.log_mul (by norm_num : (400 : ℝ) ≠ 0)
-      (pow_ne_zero 4 (ne_of_gt htpos)), Real.log_pow]
-  nlinarith [hlog400, hlogt, htR]
+  calc
+    Real.log (400 * (t : ℝ)^4)
+        = Real.log (400 : ℝ) + Real.log ((t : ℝ)^4) := by
+            rw [Real.log_mul (by norm_num : (400 : ℝ) ≠ 0)
+              (pow_ne_zero 4 (ne_of_gt htpos))]
+    _ = Real.log (400 : ℝ) + 4 * Real.log (t : ℝ) := by
+          rw [Real.log_pow]
+          norm_num
+    _ ≤ 399 + 4 * ((t : ℝ) - 1) := by
+          exact add_le_add hlog400
+            (mul_le_mul_of_nonneg_left hlogt (by norm_num))
+    _ ≤ 5 * (t : ℝ) := by
+          nlinarith [htR]
 
 private lemma pnt_half_main_term_v3
     {C : ℝ} {M count : ℕ}

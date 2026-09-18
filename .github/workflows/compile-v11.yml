@@ -42,9 +42,30 @@ jobs:
           use-mathlib-cache: true
           use-github-cache: false
 
+      - name: Restore dyadic-PNT build cache
+        id: pnt_cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            work/.lake/build/lib/lean/PrimeGapsTheory
+            work/.lake/packages/PrimeNumberTheoremAnd/.lake/build
+            work/.lake/packages/LeanArchitect/.lake/build
+          key: jsp-pnt-${{ runner.os }}-${{ hashFiles('work/lean-toolchain', 'work/lake-manifest.json') }}
+
       - name: Build required PrimeGapsTheory dyadic-PNT module
+        if: steps.pnt_cache.outputs.cache-hit != 'true'
         working-directory: work
         run: lake build PrimeGapsTheory.NumberTheory.DyadicPNT
+
+      - name: Save dyadic-PNT build cache
+        if: steps.pnt_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            work/.lake/build/lib/lean/PrimeGapsTheory
+            work/.lake/packages/PrimeNumberTheoremAnd/.lake/build
+            work/.lake/packages/LeanArchitect/.lake/build
+          key: ${{ steps.pnt_cache.outputs.cache-primary-key }}
 
       - name: Compile JSP-001007 V11 modules
         id: jsp_compile
