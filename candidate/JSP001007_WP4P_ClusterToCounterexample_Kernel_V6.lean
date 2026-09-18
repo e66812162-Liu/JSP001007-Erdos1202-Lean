@@ -144,6 +144,9 @@ lemma ClusterData.rectangle_subset_remaining
   subst x
   simp [pairBox1202] at hqr
   rcases hqr with ⟨hq, hrlo, hrhi⟩
+  change q * D.B + r ∈
+    (Finset.Icc 1 D.n).filter
+      (fun y => ∀ i, (y : ZMod (D.p i)) ∉ D.A i)
   rw [Finset.mem_filter]
   constructor
   · rw [Finset.mem_Icc]
@@ -176,6 +179,18 @@ lemma ClusterData.rectangle_large {k : ℕ} (D : ClusterData k) :
   have hhalf : D.B = 2 * (D.B / 2) := by
     rcases D.hBeven with ⟨u, hu⟩
     omega
+
+  have h3L :
+      3 * ((D.Q - 1) * D.H) < D.B / 2 := by
+    omega
+  have hLle :
+      (D.Q - 1) * D.H ≤ D.B / 2 := by
+    omega
+  have hdecomp :
+      (D.Q - 1) * D.H +
+          (D.B / 2 - (D.Q - 1) * D.H) =
+        D.B / 2 :=
+    Nat.add_sub_of_le hLle
 
   have hinner :
       D.B < 3 * (D.B / 2 - (D.Q - 1) * D.H) := by
