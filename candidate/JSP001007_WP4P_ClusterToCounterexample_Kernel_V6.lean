@@ -166,7 +166,9 @@ lemma ClusterData.rectangle_subset_remaining
           _ = (q + 1) * D.B := by ring
       have hle : (q + 1) * D.B ≤ D.Q * D.B :=
         Nat.mul_le_mul_right D.B hqsucc
-      simpa [ClusterData.n] using hxlt.trans_le hle
+      have hxle : q * D.B + r ≤ D.Q * D.B :=
+        Nat.le_of_lt (hxlt.trans_le hle)
+      simpa [ClusterData.n] using hxle
   · intro i
     simpa [ClusterData.A] using
       (clusterGap_avoids_deletedBlock1202
@@ -180,6 +182,7 @@ lemma ClusterData.rectangle_large {k : ℕ} (D : ClusterData k) :
     rcases D.hBeven with ⟨u, hu⟩
     omega
 
+  have hsmall := D.hLsmall
   have h3L :
       3 * ((D.Q - 1) * D.H) < D.B / 2 := by
     omega
