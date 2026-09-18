@@ -50,15 +50,12 @@ jobs:
           chmod +x work/run_remote_compile_v11.sh
 
       - name: Install stable Lean 4.34.0
-        uses: leanprover/lean-action@v1
-        with:
-          lake-package-directory: work
-          auto-config: false
-          build: false
-          test: false
-          lint: false
-          use-mathlib-cache: false
-          use-github-cache: false
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/lean" --version
+          "$HOME/.elan/bin/lake" --version
 
       - name: Resolve pinned stable dependencies
         working-directory: work
@@ -84,7 +81,6 @@ jobs:
         run: ./run_remote_compile_v11.sh
 
       - name: Verify exact Lean version
-        if: always()
         working-directory: work
         run: |
           lake env lean --version
