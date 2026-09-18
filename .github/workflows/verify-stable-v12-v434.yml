@@ -1,0 +1,86 @@
+name: JSP-001007 V12 Stable Lean 4.34 Verification
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/verify-stable-v12-v434.yml"
+      - "candidate/**"
+      - "run_remote_compile_v12.sh"
+
+jobs:
+  verify-stable-434:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout proof repository
+        uses: actions/checkout@v4
+        with:
+          path: launcher
+
+      - name: Checkout pinned PrimeGapsLib source
+        uses: actions/checkout@v4
+        with:
+          repository: AxiomMath/PrimeGapsLib
+          ref: 1faa7b14e82ddebc2772dfb9153922f01b106477
+          path: work
+
+      - name: Freeze stable 4.34 dependency graph
+        working-directory: work
+        run: |
+          printf 'leanprover/lean4:v4.34.0\n' > lean-toolchain
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("lakefile.toml")
+          s = p.read_text()
+          s = s.replace(
+              'rev = "288f16d9a07189233a9bc5e1c143c38d1f3f4d37"',
+              'rev = "5ed2965256430c3649e86755f9576b54eca72435"')
+          s = s.replace(
+              'rev = "main"\n\n[[lean_lib]]\nname = "PrimeGapsCert"',
+              'rev = "09617eb72103690ef22b027548c60a6126e2ef6d"\n\n[[lean_lib]]\nname = "PrimeGapsCert"')
+          p.write_text(s)
+          PY
+          rm -f lake-manifest.json
+          cp ../launcher/candidate/*.lean .
+          cp ../launcher/run_remote_compile_v12.sh .
+          chmod +x run_remote_compile_v12.sh
+
+      - name: Install Lean 4.34.0
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/lean" --version
+
+      - name: Resolve exact frozen dependencies
+        working-directory: work
+        run: lake update
+
+      - name: Restore Mathlib cache
+        working-directory: work
+        run: lake exe cache get
+
+      - name: Build stable dependency closure
+        working-directory: work
+        run: |
+          lake build Mathlib \
+            PrimeGapsTheory.NumberTheory.DyadicPNT \
+            PrimeGapsTheory.NumberTheory.PrimeCountingInterval
+
+      - name: Compile full V12 proof and print axioms
+        working-directory: work
+        run: ./run_remote_compile_v12.sh
+
+      - name: Verify exact Lean version
+        working-directory: work
+        run: |
+          lake env lean --version
+          test "$(lake env lean --version | head -1 | grep -c '4.34.0')" -eq 1
+
+      - name: Upload stable verification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsp001007-v12-stable434-logs
+          path: work/jsp_logs/
+          if-no-files-found: warn
