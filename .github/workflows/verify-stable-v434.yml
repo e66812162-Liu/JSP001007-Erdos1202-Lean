@@ -70,10 +70,10 @@ jobs:
         working-directory: work
         run: lake exe cache get
 
-      - name: Build dyadic PNT on stable 4.34
+      - name: Build Mathlib umbrella and dyadic PNT on stable 4.34
         working-directory: work
         run: |
-          lake build PrimeGapsTheory.NumberTheory.DyadicPNT             PrimeGapsTheory.NumberTheory.PrimeCountingInterval
+          lake build Mathlib PrimeGapsTheory.NumberTheory.DyadicPNT PrimeGapsTheory.NumberTheory.PrimeCountingInterval
 
       - name: Compile full JSP V11 chain on stable 4.34
         id: stable_compile
