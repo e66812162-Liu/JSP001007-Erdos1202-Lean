@@ -19,7 +19,9 @@ IMPORTANT: first real Lean build is performed by repository CI.
 -/
 
 structure ClusterData (k : ℕ) where
-  B H Q : ℕ
+  B : ℕ
+  H : ℕ
+  Q : ℕ
   P : Finset ℕ
   hkP : k ≤ P.card
   hprime : ∀ p ∈ P, p.Prime
