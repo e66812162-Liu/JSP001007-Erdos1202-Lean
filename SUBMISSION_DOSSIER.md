@@ -81,6 +81,14 @@ Artifact ID 10531041274
 SHA256 9e9b4c4883f16582cced05c883a3a995b63797dda304132e546bf584cbc25bf7
 ```
 
+## Competition lock
+
+A fresh official-repository search found existing overlapping JSP-001007 formalization submissions already under review, including issue #104 / PR #107, issue #128 / PR #133, and issue #617.
+
+Accordingly, this repository does **not** claim an empty formalization slot or first-formalization priority. The external submission should identify this work as a distinct complete formalization and ask maintainers to review overlap, attribution, priority, and eligibility.
+
+See `COMPETITION_LOCK_2026-09-17.md`.
+
 ## Proposed external PR information
 
 The Justin Sun Prize contribution instructions request references and catalog text only; the Lean source remains in this repository.
