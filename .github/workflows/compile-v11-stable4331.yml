@@ -1,0 +1,70 @@
+name: JSP-001007 V11 Soundness Rebuild Lean 4.33.1
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/compile-v11-stable4331.yml"
+      - "candidate/**"
+      - "run_remote_compile_v11.sh"
+  workflow_dispatch:
+
+jobs:
+  stable-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout launcher repository
+        uses: actions/checkout@v4
+        with:
+          path: launcher
+
+      - name: Checkout soundness-fixed PrimeGapsLib dependency set
+        uses: actions/checkout@v4
+        with:
+          repository: morluto/PrimeGapsLib
+          ref: fe4f96c691d20535b994316f8295862d4853d969
+          path: work
+
+      - name: Upgrade patch kernel to Lean 4.33.1 and overlay JSP files
+        run: |
+          echo "leanprover/lean4:v4.33.1" > work/lean-toolchain
+          cp launcher/candidate/*.lean work/
+          cp launcher/run_remote_compile_v11.sh work/
+          chmod +x work/run_remote_compile_v11.sh
+          echo "PrimeGapsLib source commit:"
+          git -C work rev-parse HEAD
+          echo "Selected Lean toolchain:"
+          cat work/lean-toolchain
+          echo "Pinned dependency manifest hash:"
+          sha256sum work/lake-manifest.json
+
+      - name: Setup Lean 4.33.1
+        uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: work
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: false
+
+      - name: Compile complete JSP-001007 V11 chain
+        id: jsp_compile
+        continue-on-error: true
+        working-directory: work
+        run: ./run_remote_compile_v11.sh
+
+      - name: Upload soundness-rebuild logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsp001007-v11-lean4331-soundness-logs
+          path: work/jsp_logs/
+          if-no-files-found: error
+
+      - name: Fail if stable compilation failed
+        if: steps.jsp_compile.outcome == 'failure'
+        run: |
+          echo "Lean 4.33.1 soundness rebuild failed; inspect logs."
+          exit 1
