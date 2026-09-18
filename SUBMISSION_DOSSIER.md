@@ -1,12 +1,14 @@
 # JSP-001007 submission dossier
 
-This file is a preparation aid for the public Justin Sun Prize repository. It is not itself an award claim.
+This file is a preparation aid for the public Justin Sun Prize repository. It
+is not itself an award claim.
 
 ## Contribution being submitted
 
 **Lean formalization only.**
 
-Mathematical solver credit is not claimed here. The current mathematical solution attribution remains Liam Price and GPT-5.4 Pro.
+Mathematical solver credit is not claimed here. The current mathematical
+solution attribution remains Liam Price and GPT-5.4 Pro.
 
 Formalization contributor:
 
@@ -14,7 +16,7 @@ Formalization contributor:
 @e66812162-Liu
 ```
 
-Original proof repository:
+Original public proof repository:
 
 ```text
 https://github.com/e66812162-Liu/JSP001007-Erdos1202-Lean
@@ -23,20 +25,26 @@ https://github.com/e66812162-Liu/JSP001007-Erdos1202-Lean
 Frozen verified branch:
 
 ```text
-verified-v11
+verified-v12
 ```
 
 Frozen verified commit:
 
 ```text
-04d983cf27a29cb403a192a73fedc961d84b9e25
+2e53fb5325604e34311e4600aa9e845fecfda09d
 ```
 
 Top theorem and file:
 
 ```text
-JSP001007.erdos1202_negative_source_faithful_v11
-candidate/JSP001007_Master_SourceFaithful_V11.lean
+JSP001007.erdos1202_negative_public_statement_v12
+candidate/JSP001007_Master_SourceFaithful_V12.lean
+```
+
+Statement comparison:
+
+```text
+STATEMENT_COMPARISON_V12.md
 ```
 
 ## Verification evidence
@@ -45,13 +53,13 @@ Stable Lean verification:
 
 ```text
 Lean 4.34.0
-GitHub Actions run 35302485999
+GitHub Actions run 35307229093
 ```
 
 Independent audit:
 
 ```text
-GitHub Actions run 35303092340
+GitHub Actions run 35307229141
 ```
 
 The independent audit passed:
@@ -76,102 +84,94 @@ No forbidden proof-bypass tokens found in JSP source.
 Independent audit artifact:
 
 ```text
-jsp001007-v11-stable434-independent-audit
-Artifact ID 10531041274
-SHA256 9e9b4c4883f16582cced05c883a3a995b63797dda304132e546bf584cbc25bf7
+jsp001007-v12-stable434-independent-audit
+Artifact ID 10532421526
+SHA256 1a75e66e64dd294c1134ea0bc83b263dee95ec5f03fdbedb92a5eb7d81791d40
 ```
 
 ## Competition lock
 
-A fresh official-repository search found existing overlapping JSP-001007 formalization submissions already under review, including issue #104 / PR #107, issue #128 / PR #133, and issue #617.
+A fresh search of the official awards repository found overlapping JSP-001007
+formalization submissions already under review, including issue #104 / PR #107,
+issue #128 / PR #133, and issue #617.
 
-Accordingly, this repository does **not** claim an empty formalization slot or first-formalization priority. The external submission should identify this work as a distinct complete formalization and ask maintainers to review overlap, attribution, priority, and eligibility.
+Accordingly, this submission does **not** claim an empty formalization slot,
+first-formalization priority, or mathematical novelty.  It asks maintainers to
+review this as a distinct complete formalization and determine overlap,
+attribution, priority, and eligibility.
 
 See `COMPETITION_LOCK_2026-09-17.md`.
 
-## Proposed external PR information
+## Proposed external PR
 
-The Justin Sun Prize contribution instructions request references and catalog text only; the Lean source remains in this repository.
-
-Suggested PR title:
+Suggested title:
 
 ```text
-JSP-001007: add Lean formalization of the negative solution
+JSP-001007: submit distinct Lean formalization of the negative answer
 ```
 
-Suggested PR body:
+Use the official PR template and select:
 
 ```text
-This PR records a complete Lean formalization of the existing negative solution to JSP-001007 / Erdős Problem #1202.
-
-Contribution role: Lean formalization only.
-Formalization contributor: @e66812162-Liu
-
-Original proof repository:
-https://github.com/e66812162-Liu/JSP001007-Erdos1202-Lean
-
-Branch: verified-v11
-Commit: 04d983cf27a29cb403a192a73fedc961d84b9e25
-
-Top theorem:
-JSP001007.erdos1202_negative_source_faithful_v11
-
-Top file:
-candidate/JSP001007_Master_SourceFaithful_V11.lean
-
-Build / verification:
-See VERIFICATION.md in the proof repository. The complete proof chain compiles under Lean 4.34.0, the source contains no proof-bypass tokens, and an independent leanchecker run succeeds.
-
-Mathematical solver attribution is unchanged: Liam Price and GPT-5.4 Pro. This PR claims no mathematical solver credit.
+[x] Lean proof or formalization author information
 ```
 
-Suggested catalog change for the JSP-001007 row:
+Proof source object:
+
+```json
+[
+  {
+    "repository": "https://github.com/e66812162-Liu/JSP001007-Erdos1202-Lean",
+    "branch": "verified-v12",
+    "commit": "2e53fb5325604e34311e4600aa9e845fecfda09d"
+  }
+]
+```
+
+The PR should identify:
+
+- theorem: `JSP001007.erdos1202_negative_public_statement_v12`;
+- file: `candidate/JSP001007_Master_SourceFaithful_V12.lean`;
+- statement comparison: `STATEMENT_COMPARISON_V12.md`;
+- build / audit evidence: `VERIFICATION.md`;
+- attribution evidence: `ATTRIBUTION.md`.
+
+The PR should explicitly acknowledge the existing JSP-001007 submissions and
+avoid claiming first-formalization priority.
+
+## Catalog change
+
+Under the current external-submission rules, propose only the allowed catalog
+fields.  A conservative Lean-proof field is:
 
 ```text
-Lean proof | Yes — Lean source
-Formalization contributors: @e66812162-Liu.
+Submitted for maintainer review: distinct Lean formalization of the negative
+answer by @e66812162-Liu; stable Lean 4.34.0 verification and statement
+comparison are linked from the public proof repository. Organizer verification
+pending.
 ```
 
-Maintainers should reconcile eligibility/index fields after review, as required by their contribution guide.
+Add an Attribution basis field linking the repository's attribution,
+statement-comparison, and verification records.  Do not alter eligibility,
+index, or award records; maintainers reconcile those after review.
 
-## Award-claim issue after catalog review
+## Award claim
 
-The official claim form requires the actual contributor to apply using the same GitHub account that owns the original public proof repository.
+The official claim form is for the actual contributor applying for themselves.
+A claim should be filed only after the catalog / contribution evidence has been
+reviewed sufficiently for the maintainers to process it.
 
-Planned contribution type:
-
-```text
-Lean formalization
-```
-
-Problem link:
-
-```text
-https://github.com/TheJustinSunPrize/awards/blob/main/problems/catalog-1001-1022.md#jsp-001007
-```
-
-Original Lean proof repository:
-
-```text
-https://github.com/e66812162-Liu/JSP001007-Erdos1202-Lean
-```
-
-Identity-verification field may be left blank for a Lean-only application only if source attribution clearly establishes the account-to-author connection.
-
-A public follow-up email must be supplied by the applicant at claim time. Do not put private identity documents or payment information in the public issue.
-
-Related claims / conflicts:
-
-```text
-No mathematical solver credit is claimed. Mathematical solution attribution remains Liam Price and GPT-5.4 Pro.
-```
+The issue author must match the owner of the original public proof repository.
+A public follow-up email is required at claim time.  Do not publish private
+identity documents or payment information.
 
 ## Remaining publication actions
 
-Before opening the external PR:
-
-1. change this proof repository from Private to Public;
-2. verify that `verified-v11` and commit `04d983cf27a29cb403a192a73fedc961d84b9e25` are publicly reachable;
-3. optionally create a release/tag for that frozen commit;
-4. open the catalog PR from the applicant's GitHub account;
-5. after maintainer review establishes Lean attribution, submit the award-claim issue with a public follow-up email.
+1. public proof repository — completed;
+2. frozen V12 branch / commit — completed;
+3. stable Lean 4.34 verification and independent audit — completed;
+4. fork the official `TheJustinSunPrize/awards` repository under
+   `e66812162-Liu`;
+5. edit only the allowed JSP-001007 catalog fields in the fork;
+6. open the external PR using the current official template;
+7. after maintainer review, follow the official award-claim process if eligible.
