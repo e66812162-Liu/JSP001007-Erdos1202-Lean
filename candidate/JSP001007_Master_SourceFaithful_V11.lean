@@ -1,0 +1,8 @@
+import JSP001007_WP4P_SourceFaithful_FinalWrapper_V11
+
+namespace JSP001007
+
+#check erdos1202_negative_source_faithful_v11
+#print axioms erdos1202_negative_source_faithful_v11
+
+end JSP001007
