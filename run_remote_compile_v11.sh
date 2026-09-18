@@ -24,6 +24,17 @@ lake env lean --version 2>&1 | tee -a jsp_logs/00_environment.log || true
 
 mkdir -p .lake/build/lib/lean
 
+echo "=== Building required PrimeGapsTheory modules ===" | tee jsp_logs/01_primegaps_build.log
+set +e
+lake build PrimeGapsTheory.NumberTheory.DyadicPNT   PrimeGapsTheory.NumberTheory.PrimeCountingInterval   2>&1 | tee -a jsp_logs/01_primegaps_build.log
+dep_rc=${PIPESTATUS[0]}
+set -e
+if [ "$dep_rc" -ne 0 ]; then
+  echo "DEPENDENCY BUILD FAILED" | tee jsp_logs/FIRST_FAILURE.txt
+  echo "EXIT CODE: $dep_rc" | tee -a jsp_logs/FIRST_FAILURE.txt
+  exit "$dep_rc"
+fi
+
 status=0
 for f in "${files[@]}"; do
   log="jsp_logs/${f%.lean}.log"
