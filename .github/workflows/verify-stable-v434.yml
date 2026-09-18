@@ -1,0 +1,99 @@
+name: JSP-001007 V11 Stable Lean 4.34 Verification
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/verify-stable-v434.yml"
+      - "candidate/**"
+      - "run_remote_compile_v11.sh"
+
+jobs:
+  verify-stable-434:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout proof repository
+        uses: actions/checkout@v4
+        with:
+          path: launcher
+
+      - name: Checkout pinned PrimeGapsLib source
+        uses: actions/checkout@v4
+        with:
+          repository: AxiomMath/PrimeGapsLib
+          ref: 1faa7b14e82ddebc2772dfb9153922f01b106477
+          path: work
+
+      - name: Migrate dependency graph to stable Lean 4.34.0
+        working-directory: work
+        run: |
+          printf 'leanprover/lean4:v4.34.0\n' > lean-toolchain
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("lakefile.toml")
+          s = p.read_text()
+          s = s.replace(
+              'rev = "288f16d9a07189233a9bc5e1c143c38d1f3f4d37"',
+              'rev = "v4.34.0"')
+          s = s.replace(
+              'rev = "main"\n\n[[lean_lib]]\nname = "PrimeGapsCert"',
+              'rev = "v4.34.0"\n\n[[lean_lib]]\nname = "PrimeGapsCert"')
+          p.write_text(s)
+          print(p.read_text())
+          PY
+          rm -f lake-manifest.json
+
+      - name: Overlay JSP V11 proof files
+        run: |
+          cp launcher/candidate/*.lean work/
+          cp launcher/run_remote_compile_v11.sh work/
+          chmod +x work/run_remote_compile_v11.sh
+
+      - name: Install stable Lean 4.34.0
+        uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: work
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: false
+          use-github-cache: false
+
+      - name: Resolve pinned stable dependencies
+        working-directory: work
+        run: |
+          lake update
+          echo "=== stable toolchain ==="
+          cat lean-toolchain
+          echo "=== resolved manifest excerpts ==="
+          grep -n -A8 -B2 'mathlib\|PrimeNumberTheoremAnd' lake-manifest.json | head -120 || true
+
+      - name: Download Mathlib build cache
+        working-directory: work
+        run: lake exe cache get
+
+      - name: Build dyadic PNT on stable 4.34
+        working-directory: work
+        run: |
+          lake build PrimeGapsTheory.NumberTheory.DyadicPNT             PrimeGapsTheory.NumberTheory.PrimeCountingInterval
+
+      - name: Compile full JSP V11 chain on stable 4.34
+        id: stable_compile
+        working-directory: work
+        run: ./run_remote_compile_v11.sh
+
+      - name: Verify exact Lean version
+        if: always()
+        working-directory: work
+        run: |
+          lake env lean --version
+          test "$(lake env lean --version | head -1 | grep -c '4.34.0')" -eq 1
+
+      - name: Upload stable verification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsp001007-v11-stable434-logs
+          path: work/jsp_logs/
+          if-no-files-found: warn
