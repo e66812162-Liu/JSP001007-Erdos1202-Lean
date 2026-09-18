@@ -45,12 +45,29 @@ theorem clusterData_arch51_exists (k : ℕ) :
     have hp' := Finset.mem_filter.mp hp
     have hI := Finset.mem_Ioc.mp hp'.1
     dsimp [s, M] at hI
-    simpa [two_mul] using hI
+    constructor
+    · exact hI.1
+    · calc
+        p ≤ 400 * t^4 + 400 * t^4 := hI.2
+        _ = 800 * t^4 := by ring
+
+  have hsCardEq :
+      s.card =
+        Nat.primeCountingIoc (400 * t^4) (800 * t^4) := by
+    have hsCardM :
+        s.card = Nat.primeCountingIoc M (2 * M) := by
+      dsimp [s]
+      exact primeWindowL_card M
+    calc
+      s.card = Nat.primeCountingIoc M (2 * M) := hsCardM
+      _ = Nat.primeCountingIoc (400 * t^4) (800 * t^4) := by
+        dsimp [M]
+        rw [show 2 * (400 * t^4) = 800 * t^4 by ring]
 
   have hscard :
       (400 * t^2) * k ≤ s.card := by
-    simpa [s, M, primeWindowL, Nat.primeCountingIoc, two_mul,
-      mul_assoc, mul_left_comm, mul_comm] using hcount
+    rw [hsCardEq]
+    exact hcount
 
   obtain ⟨B, hBlo, hBhi, hBeven, hclusterCard⟩ :=
     arch51_dense_interval_v4 htpos hteven s hs hscard
