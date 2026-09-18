@@ -183,6 +183,12 @@ lemma ClusterData.rectangle_large {k : ℕ} (D : ClusterData k) :
     omega
 
   have hsmall := D.hLsmall
+  have h6Lhalf :
+      6 * ((D.Q - 1) * D.H) < 2 * (D.B / 2) := by
+    calc
+      6 * ((D.Q - 1) * D.H) < D.B := D.hLsmall
+      _ = 2 * (D.B / 2) := hhalf
+
   have h3L :
       3 * ((D.Q - 1) * D.H) < D.B / 2 := by
     omega
