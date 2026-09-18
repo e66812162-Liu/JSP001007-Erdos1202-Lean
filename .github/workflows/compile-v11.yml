@@ -1,0 +1,62 @@
+name: JSP-001007 V11 Real Lean Compile
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout launcher repository
+        uses: actions/checkout@v4
+        with:
+          path: launcher
+
+      - name: Checkout PrimeGapsLib
+        uses: actions/checkout@v4
+        with:
+          repository: AxiomMath/PrimeGapsLib
+          ref: main
+          path: work
+
+      - name: Overlay JSP V11 candidate files
+        run: |
+          cp launcher/candidate/*.lean work/
+          cp launcher/run_remote_compile_v11.sh work/
+          chmod +x work/run_remote_compile_v11.sh
+          echo "PrimeGapsLib commit:"
+          git -C work rev-parse HEAD
+          echo "PrimeGapsLib toolchain:"
+          cat work/lean-toolchain
+
+      - name: Setup Lean
+        uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: work
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+
+      - name: Compile JSP-001007 V11 modules
+        id: jsp_compile
+        continue-on-error: true
+        working-directory: work
+        run: ./run_remote_compile_v11.sh
+
+      - name: Upload compiler logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsp001007-v11-lean-compiler-logs
+          path: work/jsp_logs/
+          if-no-files-found: error
+
+      - name: Fail if compilation failed
+        if: steps.jsp_compile.outcome == 'failure'
+        run: |
+          echo "Lean compilation failed; inspect the uploaded compiler logs."
+          exit 1
