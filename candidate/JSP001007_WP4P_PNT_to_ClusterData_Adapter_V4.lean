@@ -48,7 +48,7 @@ theorem clusterData_arch51_exists (k : ℕ) :
     constructor
     · exact hI.1
     · calc
-        p ≤ 400 * t^4 + 400 * t^4 := hI.2
+        p ≤ 2 * (400 * t^4) := hI.2
         _ = 800 * t^4 := by ring
 
   have hsCardEq :
