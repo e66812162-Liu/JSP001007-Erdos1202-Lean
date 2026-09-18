@@ -40,6 +40,7 @@ jobs:
           test: false
           lint: false
           use-mathlib-cache: true
+          use-github-cache: false
 
       - name: Compile JSP-001007 V11 modules
         id: jsp_compile

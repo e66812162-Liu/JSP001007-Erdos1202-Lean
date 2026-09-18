@@ -24,13 +24,23 @@ theorem arch51_dense_interval_v4
   have hMH : 400 * t^4 = (400 * t^2) * t^2 :=
     arch51_partition_identity_v4 t
 
+  have hs' :
+      ∀ p ∈ s, 400 * t^4 < p ∧ p ≤ 2 * (400 * t^4) := by
+    intro p hp
+    have h := hs p hp
+    constructor
+    · exact h.1
+    · calc
+        p ≤ 800 * t^4 := h.2
+        _ = 2 * (400 * t^4) := by ring
+
   obtain ⟨j, hj, hjcard, hjbounds⟩ :=
     exists_dense_box_v4
       (M := 400 * t^4)
       (H := t^2)
       (J := 400 * t^2)
       (k := k)
-      hH hJ hMH s hs hcard
+      hH hJ hMH s hs' hcard
 
   let B : ℕ := 400 * t^4 + j * t^2
 
@@ -69,7 +79,13 @@ theorem arch51_dense_interval_v4
       have hps := (Finset.mem_filter.mp hp).1
       rw [Finset.mem_filter]
       refine ⟨hps, ?_⟩
-      simpa [B, add_assoc] using hb
+      constructor
+      · simpa [B] using hb.1
+      · calc
+          p ≤ 400 * t^4 + (j + 1) * t^2 := hb.2
+          _ = B + t^2 := by
+            dsimp [B]
+            ring
     exact le_trans hjcard (Finset.card_le_card hsubset)
 
 end JSP001007
