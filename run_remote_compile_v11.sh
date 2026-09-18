@@ -4,11 +4,11 @@ set -uo pipefail
 mkdir -p jsp_logs
 
 files=(
+  JSP001007_WP4N_DyadicPNTLowerBound_V5.lean
   JSP001007_ClusterGapEngine1202_Candidate.lean
   JSP001007_WP4C_PrimeBoxPigeonhole_StaticAuditV4.lean
   JSP001007_WP4C_Arch51_PrimeBox_StaticAuditV4.lean
   JSP001007_WP4P_ClusterToCounterexample_Kernel_V6.lean
-  JSP001007_WP4N_DyadicPNTLowerBound_V5.lean
   JSP001007_WP4P_PNT_to_ClusterData_Adapter_V4.lean
   JSP001007_WP4P_SourceFaithful_FinalWrapper_V11.lean
   JSP001007_Master_SourceFaithful_V11.lean

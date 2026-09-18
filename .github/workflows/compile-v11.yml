@@ -42,6 +42,10 @@ jobs:
           use-mathlib-cache: true
           use-github-cache: false
 
+      - name: Build required PrimeGapsTheory dyadic-PNT module
+        working-directory: work
+        run: lake build PrimeGapsTheory.NumberTheory.DyadicPNT
+
       - name: Compile JSP-001007 V11 modules
         id: jsp_compile
         continue-on-error: true
