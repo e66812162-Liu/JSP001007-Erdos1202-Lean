@@ -1,4 +1,4 @@
-name: JSP-001007 V11 Soundness Rebuild Lean 4.33.1
+name: JSP-001007 V11 Soundness Rebuild Lean 4.33.0
 
 on:
   push:
@@ -25,10 +25,9 @@ jobs:
           ref: fe4f96c691d20535b994316f8295862d4853d969
           path: work
 
-      - name: Upgrade patch kernel to Lean 4.33.1 and overlay JSP files
+      - name: Overlay JSP files on soundness-fixed dependency set
         run: |
-          echo "leanprover/lean4:v4.33.1" > work/lean-toolchain
-          cp launcher/candidate/*.lean work/
+                    cp launcher/candidate/*.lean work/
           cp launcher/run_remote_compile_v11.sh work/
           chmod +x work/run_remote_compile_v11.sh
           echo "PrimeGapsLib source commit:"
@@ -38,7 +37,7 @@ jobs:
           echo "Pinned dependency manifest hash:"
           sha256sum work/lake-manifest.json
 
-      - name: Setup Lean 4.33.1
+      - name: Setup Lean 4.33.0
         uses: leanprover/lean-action@v1
         with:
           lake-package-directory: work
@@ -59,12 +58,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jsp001007-v11-lean4331-soundness-logs
+          name: jsp001007-v11-lean4330-soundness-logs
           path: work/jsp_logs/
           if-no-files-found: error
 
       - name: Fail if stable compilation failed
         if: steps.jsp_compile.outcome == 'failure'
         run: |
-          echo "Lean 4.33.1 soundness rebuild failed; inspect logs."
+          echo "Lean 4.33.0 soundness rebuild failed; inspect logs."
           exit 1
