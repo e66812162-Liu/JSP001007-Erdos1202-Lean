@@ -42,7 +42,11 @@ lemma boxIndexV4_bounds
   have hlow : j * H ≤ p - M - 1 := hlow0
   have hupp_pair := (Nat.div_eq_iff hH).1 hdiv
   have hupp : p - M - 1 ≤ j * H + H - 1 := hupp_pair.2
-  constructor <;> omega
+  constructor
+  · omega
+  · calc
+      p ≤ M + (j * H + H) := by omega
+      _ = M + (j + 1) * H := by ring
 
 def boxFiberV4 (s : Finset ℕ) (M H j : ℕ) : Finset ℕ :=
   s.filter (fun p => boxIndexV4 M H p = j)
