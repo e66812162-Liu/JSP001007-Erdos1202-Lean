@@ -28,12 +28,15 @@ private lemma log_arch51_upper_v3
     Real.log (400 * (t : ℝ)^4) ≤ 5 * t := by
   have htpos : (0 : ℝ) < t := by positivity
   have hlog400 : Real.log (400 : ℝ) ≤ 399 := by
-    exact Real.log_le_sub_one_of_pos (by norm_num)
+    simpa using
+      (Real.log_le_sub_one_of_pos (show (0 : ℝ) < 400 by norm_num))
   have hlogt : Real.log (t : ℝ) ≤ (t : ℝ) - 1 := by
     exact Real.log_le_sub_one_of_pos htpos
+  have htR : (395 : ℝ) ≤ (t : ℝ) := by
+    exact_mod_cast ht
   rw [Real.log_mul (by norm_num : (400 : ℝ) ≠ 0)
       (pow_ne_zero 4 (ne_of_gt htpos)), Real.log_pow]
-  nlinarith
+  nlinarith [hlog400, hlogt, htR]
 
 private lemma pnt_half_main_term_v3
     {C : ℝ} {M count : ℕ}
@@ -89,6 +92,13 @@ private lemma pnt_half_main_term_v3
       mul_le_mul_of_nonneg_right hlogC hfactor
     simpa [pow_two, mul_assoc, mul_left_comm, mul_comm] using hmul
 
+  have hlogne : Real.log (M : ℝ) ≠ 0 := ne_of_gt hlogpos
+  have hmain_double :
+      (M : ℝ) / Real.log M =
+        2 * ((M : ℝ) / (2 * Real.log M)) := by
+    field_simp [hlogne]
+    <;> ring
+  rw [hmain_double] at hlow
   linarith
 
 theorem dyadic_many_primes_arch51_v3 (k : ℕ) :
@@ -129,7 +139,8 @@ theorem dyadic_many_primes_arch51_v3 (k : ℕ) :
     omega
   have hteven : Even t := by
     refine ⟨R, ?_⟩
-    simp [t, Nat.mul_comm]
+    dsimp [t]
+    omega
 
   have htpos : 0 < t := by omega
   have hM2 : 2 ≤ M := by
@@ -223,6 +234,11 @@ theorem dyadic_many_primes_arch51_v3 (k : ℕ) :
 
   refine ⟨t, ht395, htk, hteven, ?_⟩
   have h := hkpoly.trans hcountNat
-  simpa [M, two_mul, mul_assoc, mul_left_comm, mul_comm] using h
+  dsimp [M] at h
+  have htwo :
+      2 * (400 * t^4) = 800 * t^4 := by
+    ring
+  rw [htwo] at h
+  exact h
 
 end JSP001007
