@@ -4,6 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches: ["main"]
+    paths:
+      - "candidate/**"
+      - "run_remote_compile_v11.sh"
+      - ".github/workflows/compile-v11.yml"
 
 jobs:
   compile:
