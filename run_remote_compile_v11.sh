@@ -22,6 +22,8 @@ lake --version 2>&1 | tee -a jsp_logs/00_environment.log || true
 echo "Lean version:" | tee -a jsp_logs/00_environment.log
 lake env lean --version 2>&1 | tee -a jsp_logs/00_environment.log || true
 
+mkdir -p .lake/build/lib/lean
+
 status=0
 for f in "${files[@]}"; do
   log="jsp_logs/${f%.lean}.log"
@@ -29,7 +31,8 @@ for f in "${files[@]}"; do
   echo "COMPILING $f" | tee -a "$log"
   echo "======================================================" | tee -a "$log"
   set +e
-  lake env lean "$f" 2>&1 | tee -a "$log"
+  out=".lake/build/lib/lean/${f%.lean}.olean"
+  lake env lean -o "$out" "$f" 2>&1 | tee -a "$log"
   rc=${PIPESTATUS[0]}
   set -e
   if [ "$rc" -ne 0 ]; then
