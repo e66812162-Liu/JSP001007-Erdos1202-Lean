@@ -1,0 +1,96 @@
+name: JSP-001007 V13 Candidate Verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - audit-v12-closed-death
+    paths:
+      - ".github/workflows/verify-v13-candidate.yml"
+      - "candidate/JSP001007_WP4Q_SourceFaithful_FinalWrapper_V13.lean"
+      - "candidate/JSP001007_Master_SourceFaithful_V13.lean"
+
+jobs:
+  verify-v13:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout candidate branch
+        uses: actions/checkout@v4
+        with:
+          path: launcher
+
+      - name: Checkout pinned PrimeGapsLib
+        uses: actions/checkout@v4
+        with:
+          repository: AxiomMath/PrimeGapsLib
+          ref: 1faa7b14e82ddebc2772dfb9153922f01b106477
+          path: work
+
+      - name: Materialize exact PNT dependency
+        run: |
+          curl -L --fail --retry 3 https://github.com/AxiomMath/PrimeNumberTheoremAnd/archive/09617eb72103690ef22b027548c60a6126e2ef6d.tar.gz -o pnta.tar.gz
+          tar -xzf pnta.tar.gz
+          mv PrimeNumberTheoremAnd-09617eb72103690ef22b027548c60a6126e2ef6d pnta
+
+      - name: Prepare frozen dependency graph
+        working-directory: work
+        run: |
+          printf 'leanprover/lean4:v4.34.0\n' > lean-toolchain
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("lakefile.toml")
+          lines = p.read_text().splitlines()
+          out = []
+          i = 0
+          while i < len(lines):
+              if lines[i] == 'rev = "288f16d9a07189233a9bc5e1c143c38d1f3f4d37"':
+                  out.append('rev = "5ed2965256430c3649e86755f9576b54eca72435"')
+                  i += 1
+              elif (i + 3 < len(lines)
+                    and lines[i] == '[[require]]'
+                    and lines[i + 1] == 'name = "PrimeNumberTheoremAnd"'
+                    and lines[i + 2].startswith('git = ')
+                    and lines[i + 3] == 'rev = "main"'):
+                  out.extend(['[[require]]','name = "PrimeNumberTheoremAnd"','path = "../pnta"'])
+                  i += 4
+              else:
+                  out.append(lines[i])
+                  i += 1
+          p.write_text('\n'.join(out) + '\n')
+          PY
+          rm -f lake-manifest.json
+          cp ../launcher/candidate/*.lean .
+          cp ../launcher/run_remote_compile_v12.sh .
+          chmod +x run_remote_compile_v12.sh
+
+      - name: Install Lean 4.34
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve dependencies
+        working-directory: work
+        run: lake update
+
+      - name: Restore cache
+        working-directory: work
+        run: lake exe cache get
+
+      - name: Build dependency closure
+        working-directory: work
+        run: |
+          lake build Mathlib PrimeGapsTheory.NumberTheory.DyadicPNT PrimeGapsTheory.NumberTheory.PrimeCountingInterval
+
+      - name: Recompile V12 base chain
+        working-directory: work
+        run: ./run_remote_compile_v12.sh
+
+      - name: Compile V13
+        working-directory: work
+        run: |
+          lake env lean -o .lake/build/lib/lean/JSP001007_WP4Q_SourceFaithful_FinalWrapper_V13.olean JSP001007_WP4Q_SourceFaithful_FinalWrapper_V13.lean
+          lake env lean -o .lake/build/lib/lean/JSP001007_Master_SourceFaithful_V13.olean JSP001007_Master_SourceFaithful_V13.lean
+
+      - name: Kernel check V13
+        working-directory: work
+        run: lake env leanchecker JSP001007_Master_SourceFaithful_V13
