@@ -87,9 +87,14 @@ This confirms why the canonical source wrapper uses
 Closed death audit workflow:
 
 ```text
-Run 35953961348
+Run 35955551095
 JSP-001007 V12 Closed Death Audit
 ```
+
+Run 35953961348 was the earlier successful pass through the original,
+semantic-pass-2, and positive-`n` audit modules.  Run 35955551095 is the
+expanded canonical audit and additionally compiles V14 plus the
+source-convention bridge module.
 
 All stages succeeded, including:
 
@@ -100,7 +105,20 @@ All stages succeeded, including:
 - second `leanchecker` replay;
 - positive-`n` audit compilation;
 - positive-`n` `leanchecker` replay;
+- V14 wrapper/master compilation;
+- source-convention bridge compilation;
+- source-convention bridge `leanchecker` replay;
 - exact Lean 4.34.0 version check.
+
+The bridge pass proves:
+
+```lean
+v12_implies_v14_audit
+erdos1202_negative_positive_k_positive_n_bridge_audit
+```
+
+so the audit does not merely assert in prose that V14 is a conservative
+hardening: the relevant implication relations are themselves kernel-checked.
 
 The audited negative theorems depend only on:
 
