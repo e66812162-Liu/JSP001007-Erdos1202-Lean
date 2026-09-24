@@ -1,0 +1,92 @@
+name: JSP-001007 V12 Closed Death Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - audit-v12-closed-death
+    paths:
+      - ".github/workflows/closed-death-audit-v12.yml"
+      - "candidate/JSP001007_ClosedDeathAudit_V12.lean"
+
+jobs:
+  death-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+        with:
+          path: launcher
+
+      - name: Checkout pinned PrimeGapsLib source
+        uses: actions/checkout@v4
+        with:
+          repository: AxiomMath/PrimeGapsLib
+          ref: 1faa7b14e82ddebc2772dfb9153922f01b106477
+          path: work
+
+      - name: Freeze stable 4.34 dependency graph and overlay proof
+        working-directory: work
+        run: |
+          printf 'leanprover/lean4:v4.34.0\n' > lean-toolchain
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("lakefile.toml")
+          s = p.read_text()
+          s = s.replace(
+              'rev = "288f16d9a07189233a9bc5e1c143c38d1f3f4d37"',
+              'rev = "5ed2965256430c3649e86755f9576b54eca72435"')
+          s = s.replace(
+              'rev = "main"\n\n[[lean_lib]]\nname = "PrimeGapsCert"',
+              'rev = "09617eb72103690ef22b027548c60a6126e2ef6d"\n\n[[lean_lib]]\nname = "PrimeGapsCert"')
+          p.write_text(s)
+          PY
+          rm -f lake-manifest.json
+          cp ../launcher/candidate/*.lean .
+          cp ../launcher/run_remote_compile_v12.sh .
+          chmod +x run_remote_compile_v12.sh
+
+      - name: Install Lean 4.34.0
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/lean" --version
+
+      - name: Resolve exact frozen dependencies
+        working-directory: work
+        run: lake update
+
+      - name: Restore Mathlib cache
+        working-directory: work
+        run: lake exe cache get
+
+      - name: Build dependency closure
+        working-directory: work
+        run: |
+          lake build Mathlib \
+            PrimeGapsTheory.NumberTheory.DyadicPNT \
+            PrimeGapsTheory.NumberTheory.PrimeCountingInterval
+
+      - name: Recompile frozen V12 chain
+        working-directory: work
+        run: ./run_remote_compile_v12.sh
+
+      - name: Compile adversarial audit
+        working-directory: work
+        run: |
+          lake env lean -o .lake/build/lib/lean/JSP001007_ClosedDeathAudit_V12.olean \
+            JSP001007_ClosedDeathAudit_V12.lean
+
+      - name: Independent kernel check of audit theorem
+        working-directory: work
+        env:
+          LEAN_NUM_THREADS: "1"
+        run: |
+          lake env leanchecker JSP001007_ClosedDeathAudit_V12
+
+      - name: Record exact Lean version
+        working-directory: work
+        run: |
+          lake env lean --version
+          test "$(lake env lean --version | head -1 | grep -c '4.34.0')" -eq 1
