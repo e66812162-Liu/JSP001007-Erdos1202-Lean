@@ -1,0 +1,75 @@
+name: JSP-001007 V14 Current-Upstream Crosscheck
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - audit-v12-closed-death
+    paths:
+      - ".github/workflows/crosscheck-v14-current-upstream.yml"
+
+jobs:
+  crosscheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact verified V14 proof
+        uses: actions/checkout@v4
+        with:
+          ref: 2ebb7d6826d0bee041ba89a61804bcf45e2dc7c7
+          path: launcher
+
+      - name: Checkout PrimeGapsLib
+        uses: actions/checkout@v4
+        with:
+          repository: AxiomMath/PrimeGapsLib
+          ref: 1faa7b14e82ddebc2772dfb9153922f01b106477
+          path: work
+
+      - name: Pin currently reachable Lean-4.34 dependency graph
+        working-directory: work
+        run: |
+          printf 'leanprover/lean4:v4.34.0\n' > lean-toolchain
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("lakefile.toml")
+          s=p.read_text()
+          s=s.replace(
+            'rev = "288f16d9a07189233a9bc5e1c143c38d1f3f4d37"',
+            'rev = "5ed2965256430c3649e86755f9576b54eca72435"')
+          s=s.replace(
+            'rev = "main"\n\n[[lean_lib]]\nname = "PrimeGapsCert"',
+            'rev = "385152bd282e0de0a22dc3ea255c222e4304b608"\n\n[[lean_lib]]\nname = "PrimeGapsCert"')
+          p.write_text(s)
+          PY
+          rm -f lake-manifest.json
+          cp ../launcher/candidate/*.lean .
+          cp ../launcher/run_remote_compile_v14.sh .
+          chmod +x run_remote_compile_v14.sh
+
+      - name: Install Lean 4.34
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve current upstream pins
+        working-directory: work
+        run: lake update
+
+      - name: Restore cache
+        working-directory: work
+        run: lake exe cache get
+
+      - name: Build dependency closure
+        working-directory: work
+        run: |
+          lake build Mathlib PrimeGapsTheory.NumberTheory.DyadicPNT PrimeGapsTheory.NumberTheory.PrimeCountingInterval
+
+      - name: Compile exact V14 proof
+        working-directory: work
+        run: ./run_remote_compile_v14.sh
+
+      - name: Kernel check exact V14 proof
+        working-directory: work
+        env:
+          LEAN_NUM_THREADS: "1"
+        run: lake env leanchecker JSP001007_Master_SourceFaithful_V14
