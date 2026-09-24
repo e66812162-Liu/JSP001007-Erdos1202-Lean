@@ -72,7 +72,8 @@ theorem erdos1202_negative_public_statement_v14 :
     change
       (D.p i : ℝ) <
         Real.rpow (D.n : ℝ) (1 - (1 : ℝ) / 3)
-    simpa only [show (1 : ℝ) - 1 / 3 = 2 / 3 by norm_num] using h23
+    rw [show (1 : ℝ) - 1 / 3 = 2 / 3 by norm_num]
+    exact h23
 
   have hcard : ∀ i, 2 * (A i).card = p i - 1 := by
     intro i
