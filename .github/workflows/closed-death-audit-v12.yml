@@ -28,10 +28,10 @@ jobs:
       - name: Materialize exact PrimeNumberTheoremAnd snapshot
         run: |
           curl -L --fail --retry 3 \
-            https://github.com/AxiomMath/PrimeNumberTheoremAnd/archive/09617eb72103690ef22b027548c60a6126e2ef6d.tar.gz \
+            https://github.com/AxiomMath/PrimeNumberTheoremAnd/archive/385152bd282e0de0a22dc3ea255c222e4304b608.tar.gz \
             -o pnta.tar.gz
           tar -xzf pnta.tar.gz
-          mv PrimeNumberTheoremAnd-09617eb72103690ef22b027548c60a6126e2ef6d pnta
+          mv PrimeNumberTheoremAnd-385152bd282e0de0a22dc3ea255c222e4304b608 pnta
           test -f pnta/lakefile.toml
 
       - name: Freeze stable 4.34 dependency graph and overlay proof
