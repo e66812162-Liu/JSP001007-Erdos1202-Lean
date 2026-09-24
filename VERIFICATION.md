@@ -71,26 +71,38 @@ SHA256: 8a736a30c863cbeba3cff674d7add71c2b22b3d61d5dc7f6ddac05fc99634695
 
 ## Closed adversarial death audit
 
-Successful workflow:
+Canonical expanded workflow:
 
 ```text
-GitHub Actions run 35953961348
+GitHub Actions run 35955551095
 JSP-001007 V12 Closed Death Audit
 ```
 
-This run recompiled the frozen V12 proof and then compiled and kernel-checked
-three adversarial audit modules.  It formally verified that the same
-counterexample survives the following statement/domain perturbations:
+An earlier audit run 35953961348 had already passed the first three audit
+modules.  Run 35955551095 is the stronger canonical record: it recompiled the
+frozen V12 proof, compiled and kernel-checked all adversarial audit modules,
+compiled the V14 wrapper, and kernel-checked the source-convention bridge.
+
+It formally verified that the same counterexample survives the following
+statement/domain perturbations:
 
 - no explicit positivity premise on `k`;
 - positive-`n` source domain;
 - historical strict terminal inequality `< ε*n`;
 - floor-half residue convention on the constructed odd primes.
 
-It also checked the strictly-increasing last-prime/all-primes bound bridge and
-the exact-half exclusion of `p = 2`.
+It also checked the strictly-increasing last-prime/all-primes bound bridge,
+the exact-half exclusion of `p = 2`, and the proposition-strength bridges
 
-The positive-`n` audit theorems report only:
+```lean
+v12_implies_v14_audit
+erdos1202_negative_positive_k_positive_n_bridge_audit
+```
+
+so the promotion to V14 is formally connected to both the V12 reading and a
+reading that explicitly requires positive `k` and positive `n`.
+
+The audited bridge and positive-`n` theorems report only:
 
 ```text
 [propext, Classical.choice, Quot.sound]
