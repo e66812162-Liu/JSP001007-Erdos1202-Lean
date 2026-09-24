@@ -110,6 +110,18 @@ jobs:
         run: |
           lake env leanchecker JSP001007_ClosedDeathAudit_V12
 
+      - name: Compile semantic audit pass 2
+        working-directory: work
+        run: |
+          lake env lean -o .lake/build/lib/lean/JSP001007_ClosedDeathAudit_Semantics2.olean JSP001007_ClosedDeathAudit_Semantics2.lean
+
+      - name: Kernel check semantic audit pass 2
+        working-directory: work
+        env:
+          LEAN_NUM_THREADS: "1"
+        run: |
+          lake env leanchecker JSP001007_ClosedDeathAudit_Semantics2
+
       - name: Record exact Lean version
         working-directory: work
         run: |
