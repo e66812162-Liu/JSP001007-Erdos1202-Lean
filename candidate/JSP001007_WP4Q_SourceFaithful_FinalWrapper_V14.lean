@@ -45,32 +45,52 @@ theorem erdos1202_negative_public_statement_v14 :
 
   obtain ⟨D, _⟩ := clusterData_arch51_exists k
 
-  obtain ⟨n, p, A, hp, hmono, hsmall, hcard, hlarge⟩ :=
-    counterexample_at_third_of_clusterData_exact D
+  let n := D.n
+  let p := D.p
+  let A := D.A
 
   have hnpos : 0 < n := by
-    dsimp only [ClusterData.n]
+    dsimp [n, ClusterData.n]
     exact Nat.mul_pos D.hQpos D.hBpos
 
-  have hsmall' :
+  have hp : ∀ i, (p i).Prime := by
+    intro i
+    exact D.p_prime i
+
+  have hmono : StrictMono p := D.p_strictMono
+
+  have hsmall :
       ∀ i,
         (p i : ℝ) <
           Real.rpow (n : ℝ) (1 - (1 : ℝ) / 3) := by
     intro i
-    simpa only [show (1 : ℝ) - 1 / 3 = 2 / 3 by norm_num] using
-      hsmall i
+    have h23 :
+        (p i : ℝ) < Real.rpow (n : ℝ) ((2 : ℝ) / 3) := by
+      exact cube_lt_square_to_rpow_two_thirds_kernel
+        (D.hpow (D.p i) (D.p_mem i))
+    simpa only [show (1 : ℝ) - 1 / 3 = 2 / 3 by norm_num] using h23
 
-  have hbad := hk n p A hnpos hp hmono hsmall' hcard
+  have hcard : ∀ i, 2 * (A i).card = p i - 1 := by
+    intro i
+    exact D.A_card_exact_half i
+
+  have hbad := hk n p A hnpos hp hmono hsmall hcard
+
+  have hNat : D.n < 3 * D.remaining.card := D.remaining_large
+  have hReal : (D.n : ℝ) < 3 * (D.remaining.card : ℝ) := by
+    exact_mod_cast hNat
+
+  have hlarge :
+      (n : ℝ) / 3 <
+        ((remaining1202SourceV14 n p A).card : ℝ) := by
+    dsimp [n, p, A]
+    simpa [remaining1202SourceV14, ClusterData.remaining] using
+      (show (D.n : ℝ) / 3 < D.remaining.card by nlinarith)
 
   have hbad' :
       ((remaining1202SourceV14 n p A).card : ℝ) ≤ (n : ℝ) / 3 := by
     nlinarith
 
-  have hlarge' :
-      (n : ℝ) / 3 <
-        ((remaining1202SourceV14 n p A).card : ℝ) := by
-    simpa [remaining1202SourceV14] using hlarge
-
-  exact (not_lt_of_ge hbad') hlarge'
+  exact (not_lt_of_ge hbad') hlarge
 
 end JSP001007
