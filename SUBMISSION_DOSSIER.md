@@ -55,7 +55,17 @@ SHA256: 8a736a30c863cbeba3cff674d7add71c2b22b3d61d5dc7f6ddac05fc99634695
 Closed adversarial statement audit:
 
 ```text
-Run 35953961348 — success
+Run 35955551095 — success
+```
+
+This expanded run includes the source-convention bridge pass; the earlier
+run 35953961348 had already passed the first three adversarial audit modules.
+
+Current-upstream compatibility cross-check:
+
+```text
+Run 35955253998 — success
+PrimeNumberTheoremAnd: 385152bd282e0de0a22dc3ea255c222e4304b608
 ```
 
 The canonical theorem reports only:
