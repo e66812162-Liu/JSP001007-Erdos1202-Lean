@@ -45,13 +45,8 @@ jobs:
           s = s.replace(
               'rev = "288f16d9a07189233a9bc5e1c143c38d1f3f4d37"',
               'rev = "5ed2965256430c3649e86755f9576b54eca72435"')
-          old = '''[[require]]
-name = "PrimeNumberTheoremAnd"
-git = "https://github.com/AxiomMath/PrimeNumberTheoremAnd.git"
-rev = "main"'''
-          new = '''[[require]]
-name = "PrimeNumberTheoremAnd"
-path = "../pnta"'''
+          old = '[[require]]\\nname = "PrimeNumberTheoremAnd"\\ngit = "https://github.com/AxiomMath/PrimeNumberTheoremAnd.git"\\nrev = "main"'
+          new = '[[require]]\\nname = "PrimeNumberTheoremAnd"\\npath = "../pnta"'
           assert old in s
           s = s.replace(old, new)
           p.write_text(s)
