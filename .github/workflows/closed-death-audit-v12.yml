@@ -25,6 +25,15 @@ jobs:
           ref: 1faa7b14e82ddebc2772dfb9153922f01b106477
           path: work
 
+      - name: Materialize exact PrimeNumberTheoremAnd snapshot
+        run: |
+          curl -L --fail --retry 3 \
+            https://github.com/AxiomMath/PrimeNumberTheoremAnd/archive/09617eb72103690ef22b027548c60a6126e2ef6d.tar.gz \
+            -o pnta.tar.gz
+          tar -xzf pnta.tar.gz
+          mv PrimeNumberTheoremAnd-09617eb72103690ef22b027548c60a6126e2ef6d pnta
+          test -f pnta/lakefile.toml
+
       - name: Freeze stable 4.34 dependency graph and overlay proof
         working-directory: work
         run: |
@@ -36,9 +45,15 @@ jobs:
           s = s.replace(
               'rev = "288f16d9a07189233a9bc5e1c143c38d1f3f4d37"',
               'rev = "5ed2965256430c3649e86755f9576b54eca72435"')
-          s = s.replace(
-              'rev = "main"\n\n[[lean_lib]]\nname = "PrimeGapsCert"',
-              'rev = "09617eb72103690ef22b027548c60a6126e2ef6d"\n\n[[lean_lib]]\nname = "PrimeGapsCert"')
+          old = '''[[require]]
+name = "PrimeNumberTheoremAnd"
+git = "https://github.com/AxiomMath/PrimeNumberTheoremAnd.git"
+rev = "main"'''
+          new = '''[[require]]
+name = "PrimeNumberTheoremAnd"
+path = "../pnta"'''
+          assert old in s
+          s = s.replace(old, new)
           p.write_text(s)
           PY
           rm -f lake-manifest.json
