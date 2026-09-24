@@ -1,79 +1,106 @@
 # Verification record
 
-## Frozen proof snapshot
+## Canonical frozen proof snapshot
 
 - Proof repository: `e66812162-Liu/JSP001007-Erdos1202-Lean`
-- Verified branch: `verified-v12`
-- Verified commit: `2e53fb5325604e34311e4600aa9e845fecfda09d`
-- Top theorem: `JSP001007.erdos1202_negative_public_statement_v12`
-- Top file: `candidate/JSP001007_Master_SourceFaithful_V12.lean`
+- Verified branch: `verified-v14`
+- Verified commit: `2ebb7d6826d0bee041ba89a61804bcf45e2dc7c7`
+- Top theorem: `JSP001007.erdos1202_negative_public_statement_v14`
+- Top file: `candidate/JSP001007_Master_SourceFaithful_V14.lean`
+- Lean: **4.34.0**
 
-## Stable-kernel verification
+## V14 candidate verification
 
-The full V12 proof chain compiled successfully with Lean 4.34.0.
-
-Successful stable verification workflow:
+Successful workflow:
 
 ```text
-GitHub Actions run 35307229093
-JSP-001007 V12 Stable Lean 4.34 Verification
+GitHub Actions run 35954341357
+JSP-001007 V14 Candidate Verification
 ```
 
-The compiler output included:
+The run successfully:
+
+1. materialized the frozen analytic dependency snapshot;
+2. resolved the Lean 4.34 dependency graph;
+3. built the dependency closure;
+4. recompiled the V12 base chain;
+5. compiled the V14 wrapper and master;
+6. replayed the V14 module with `leanchecker`.
+
+The compiler output includes:
 
 ```text
-JSP001007.erdos1202_negative_public_statement_v12 :
-  ¬ Erdos1202SourceStatementV12
+JSP001007.erdos1202_negative_public_statement_v14 :
+  ¬ Erdos1202SourceStatementV14
 
-'JSP001007.erdos1202_negative_public_statement_v12'
+'JSP001007.erdos1202_negative_public_statement_v14'
 depends on axioms: [propext, Classical.choice, Quot.sound]
-
-ALL V12 CANDIDATE MODULES COMPILED
 ```
 
-Stable verification artifact:
+## Robust independent audit
+
+Successful workflow:
 
 ```text
-jsp001007-v12-stable434-logs
-artifact ID: 10531682924
-SHA256: c7c3e1003b98fe00833c1ee939bfa359ff08d47e0802ea680b1f4cda100950b6
+GitHub Actions run 35954341376
+JSP-001007 V14 Robust Independent Audit
 ```
 
-## Independent audit
+The audit passed:
 
-Independent audit workflow:
-
-```text
-GitHub Actions run 35307229141
-JSP-001007 V12 Stable 4.34 Independent Audit
-```
-
-This audit passed all of the following:
-
-1. frozen dependency resolution;
-2. stable Lean 4.34.0 dependency build;
-3. full V12 compilation;
-4. `#print axioms`;
-5. forbidden-token scan;
-6. independent `leanchecker`.
+- full V14 compilation;
+- `#print axioms`;
+- forbidden-token scan;
+- independent `leanchecker`;
+- frozen dependency metadata recording;
+- evidence artifact upload.
 
 The source scan reported:
 
 ```text
-No forbidden proof-bypass tokens found in JSP source.
+No forbidden proof-bypass tokens found.
 ```
-
-The independent `leanchecker` step completed successfully.
 
 Audit artifact:
 
 ```text
-jsp001007-v12-stable434-independent-audit
-artifact ID: 10532421526
-SHA256: 1a75e66e64dd294c1134ea0bc83b263dee95ec5f03fdbedb92a5eb7d81791d40
+name: jsp001007-v14-robust-audit
+artifact ID: 10789856945
+SHA256: 8a736a30c863cbeba3cff674d7add71c2b22b3d61d5dc7f6ddac05fc99634695
 ```
 
-## Frozen dependency revisions
+## Closed adversarial death audit
+
+Successful workflow:
+
+```text
+GitHub Actions run 35953961348
+JSP-001007 V12 Closed Death Audit
+```
+
+This run recompiled the frozen V12 proof and then compiled and kernel-checked
+three adversarial audit modules.  It formally verified that the same
+counterexample survives the following statement/domain perturbations:
+
+- no explicit positivity premise on `k`;
+- positive-`n` source domain;
+- historical strict terminal inequality `< ε*n`;
+- floor-half residue convention on the constructed odd primes.
+
+It also checked the strictly-increasing last-prime/all-primes bound bridge and
+the exact-half exclusion of `p = 2`.
+
+The positive-`n` audit theorems report only:
+
+```text
+[propext, Classical.choice, Quot.sound]
+```
+
+and their modules passed `leanchecker`.
+
+See [CLOSED_DEATH_AUDIT_V14.md](CLOSED_DEATH_AUDIT_V14.md).
+
+## Frozen dependency inputs
 
 ```text
 PrimeGapsLib:
@@ -82,13 +109,27 @@ PrimeGapsLib:
 Mathlib:
 5ed2965256430c3649e86755f9576b54eca72435
 
-PrimeNumberTheoremAnd:
+PrimeNumberTheoremAnd historical source snapshot:
 09617eb72103690ef22b027548c60a6126e2ef6d
 ```
 
+The robust audit materializes the historical PrimeNumberTheoremAnd source via a
+GitHub source archive and records its archive hash:
+
+```text
+SHA256(pnta.tar.gz):
+9ed07e290dfdaec7d0ae09e71e31530880421d2f54b9fd44c20585bba17227c8
+```
+
+This archive-based route was added after upstream repository history changed
+such that a fresh direct Git checkout of the historical commit was no longer a
+reliable reproduction path.  The exact historical source archive remains
+retrievable and hash-checked, so V14's audit does not rely on a moving upstream
+branch.
+
 ## Axiom policy
 
-The final theorem reports only:
+The canonical theorem reports only:
 
 ```text
 propext
@@ -96,20 +137,18 @@ Classical.choice
 Quot.sound
 ```
 
-No project-specific axiom or proof-bypass placeholder is used in the JSP proof
-source.
+No project-specific axiom, `sorry`, `admit`, `unsafe`,
+`native_decide`, or `skipKernelTC` occurs in the canonical V14 proof chain.
 
-## Statement-fidelity update from V11
+## Version history
 
-V11 used a strict terminal inequality `< ε*n`.  V12 replaces this with
-`≤ ε*n` to match the current public wording "at most ε n".  The underlying
-counterexample construction already proves a strict lower bound above
-`n/3`, so the mathematical core is unchanged.
+- **V11**: historical strict terminal wrapper.
+- **V12**: aligned terminal condition to current public "at most ε n" wording.
+- **V13**: death-audit candidate removing an extra `0 < k` convention;
+  independently compiled and kernel-checked.
+- **V14**: canonical hardened wrapper, additionally making the positive
+  `n` source domain explicit.
 
-See [STATEMENT_COMPARISON_V12.md](STATEMENT_COMPARISON_V12.md).
-
-## Reproducibility
-
-The exact proof source intended for external review is the public branch
-`verified-v12` at the full commit SHA given above.  The repository also keeps
-the earlier V11 history for auditability.
+The mathematical prime-cluster and survivor construction is unchanged across
+V12–V14.  The later versions harden only the statement interface and
+reproducibility package.

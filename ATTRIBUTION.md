@@ -23,30 +23,45 @@ GitHub account: e66812162-Liu
 Repository: e66812162-Liu/JSP001007-Erdos1202-Lean
 ```
 
-This repository is the original working repository for this formalization and
-contains the proof engineering history, stable-kernel migration, statement
-comparison, and verification evidence.
+The repository contains the formalization, proof-engineering history,
+statement-fidelity audit, stable-kernel verification, and reproducibility
+evidence.
 
-The contribution claim is therefore **Lean formalization only**, not
-mathematical solver credit.
+The contribution claim is **Lean formalization only**, not mathematical solver
+credit.
 
-## Scope
+## Canonical scope
 
-The canonical external-review theorem is:
+The current external-review theorem is:
 
 ```lean
-JSP001007.erdos1202_negative_public_statement_v12 :
-  ¬ Erdos1202SourceStatementV12
+JSP001007.erdos1202_negative_public_statement_v14 :
+  ¬ Erdos1202SourceStatementV14
 ```
 
-V12 directly formalizes the current public "at most ε n" terminal condition as
-`≤ ε * n`.  See `STATEMENT_COMPARISON_V12.md`.
+Frozen review source:
+
+```text
+branch: verified-v14
+commit: 2ebb7d6826d0bee041ba89a61804bcf45e2dc7c7
+```
+
+V14 is a statement-interface hardening of the same counterexample formalized
+in V12.  See `STATEMENT_COMPARISON_V14.md` and
+`CLOSED_DEATH_AUDIT_V14.md`.
 
 ## Priority / overlap disclaimer
 
-Public searches of the official awards repository show other JSP-001007
-formalization submissions already under review.  This repository therefore does
-**not** claim first-formalization priority or an uncontested formalization slot.
+Public searches of the official awards repository show multiple JSP-001007
+formalization submissions, including an earlier-publicized tester-lean proof
+now represented by official PR #2284.
 
-Maintainers should decide overlap, attribution, priority, eligibility, and any
-award consequence.
+This repository therefore does **not** claim:
+
+- mathematical solver priority;
+- first-formalization priority;
+- an uncontested formalization slot;
+- award eligibility merely from publication of this repository.
+
+Maintainers should determine statement correspondence, overlap, attribution,
+priority, eligibility, and any award consequence.
