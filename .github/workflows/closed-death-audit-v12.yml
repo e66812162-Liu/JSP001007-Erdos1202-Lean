@@ -8,6 +8,7 @@ on:
     paths:
       - ".github/workflows/closed-death-audit-v12.yml"
       - "candidate/JSP001007_ClosedDeathAudit_V12.lean"
+      - "candidate/JSP001007_ClosedDeathAudit_Bridges.lean"
 
 jobs:
   death-audit:
@@ -133,6 +134,18 @@ jobs:
           LEAN_NUM_THREADS: "1"
         run: |
           lake env leanchecker JSP001007_ClosedDeathAudit_PositiveN
+
+      - name: Compile source-convention bridge audit
+        working-directory: work
+        run: |
+          lake env lean -o .lake/build/lib/lean/JSP001007_ClosedDeathAudit_Bridges.olean JSP001007_ClosedDeathAudit_Bridges.lean
+
+      - name: Kernel check source-convention bridge audit
+        working-directory: work
+        env:
+          LEAN_NUM_THREADS: "1"
+        run: |
+          lake env leanchecker JSP001007_ClosedDeathAudit_Bridges
 
       - name: Record exact Lean version
         working-directory: work
