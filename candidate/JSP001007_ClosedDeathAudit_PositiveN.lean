@@ -61,7 +61,8 @@ theorem erdos1202_negative_positive_n_audit :
         (p i : ℝ) < Real.rpow (n : ℝ) ((2 : ℝ) / 3) := by
       exact cube_lt_square_to_rpow_two_thirds_kernel
         (D.hpow (D.p i) (D.p_mem i))
-    simpa only [show (1 : ℝ) - 1 / 3 = 2 / 3 by norm_num] using h23
+    rw [show (1 : ℝ) - 1 / 3 = 2 / 3 by norm_num]
+    exact h23
 
   have hcard : ∀ i, 2 * (A i).card = p i - 1 := by
     intro i
