@@ -135,6 +135,12 @@ jobs:
         run: |
           lake env leanchecker JSP001007_ClosedDeathAudit_PositiveN
 
+      - name: Compile V14 wrapper for bridge audit
+        working-directory: work
+        run: |
+          lake env lean -o .lake/build/lib/lean/JSP001007_WP4Q_SourceFaithful_FinalWrapper_V14.olean JSP001007_WP4Q_SourceFaithful_FinalWrapper_V14.lean
+          lake env lean -o .lake/build/lib/lean/JSP001007_Master_SourceFaithful_V14.olean JSP001007_Master_SourceFaithful_V14.lean
+
       - name: Compile source-convention bridge audit
         working-directory: work
         run: |
