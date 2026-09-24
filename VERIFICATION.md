@@ -127,6 +127,27 @@ reliable reproduction path.  The exact historical source archive remains
 retrievable and hash-checked, so V14's audit does not rely on a moving upstream
 branch.
 
+## Current-upstream compatibility cross-check
+
+The exact frozen V14 proof was also rebuilt against a currently reachable
+Lean-4.34-compatible PrimeNumberTheoremAnd revision:
+
+```text
+GitHub Actions run 35955253998
+JSP-001007 V14 Current-Upstream Crosscheck
+
+PrimeNumberTheoremAnd:
+385152bd282e0de0a22dc3ea255c222e4304b608
+```
+
+That cross-check successfully resolved the dependency graph, built the analytic
+dependency closure, compiled the exact `verified-v14` proof, reported only
+`[propext, Classical.choice, Quot.sound]`, and completed `leanchecker`.
+
+This is supplementary compatibility evidence.  The canonical robust audit
+still records the historical source snapshot used by the original proof
+development.
+
 ## Axiom policy
 
 The canonical theorem reports only:
