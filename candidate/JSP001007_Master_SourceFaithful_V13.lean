@@ -1,0 +1,8 @@
+import JSP001007_WP4Q_SourceFaithful_FinalWrapper_V13
+
+namespace JSP001007
+
+#check erdos1202_negative_public_statement_v13
+#print axioms erdos1202_negative_public_statement_v13
+
+end JSP001007
