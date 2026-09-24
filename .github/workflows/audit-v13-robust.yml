@@ -1,0 +1,139 @@
+name: JSP-001007 V13 Robust Independent Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - audit-v12-closed-death
+    paths:
+      - ".github/workflows/audit-v13-robust.yml"
+      - "run_remote_compile_v13.sh"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout V13 candidate
+        uses: actions/checkout@v4
+        with:
+          path: launcher
+
+      - name: Checkout pinned PrimeGapsLib
+        uses: actions/checkout@v4
+        with:
+          repository: AxiomMath/PrimeGapsLib
+          ref: 1faa7b14e82ddebc2772dfb9153922f01b106477
+          path: work
+
+      - name: Materialize exact PrimeNumberTheoremAnd source snapshot
+        run: |
+          curl -L --fail --retry 3 \
+            https://github.com/AxiomMath/PrimeNumberTheoremAnd/archive/09617eb72103690ef22b027548c60a6126e2ef6d.tar.gz \
+            -o pnta.tar.gz
+          sha256sum pnta.tar.gz | tee pnta-SHA256SUMS
+          tar -xzf pnta.tar.gz
+          mv PrimeNumberTheoremAnd-09617eb72103690ef22b027548c60a6126e2ef6d pnta
+          test -f pnta/lakefile.toml
+
+      - name: Prepare frozen dependency graph
+        working-directory: work
+        run: |
+          printf 'leanprover/lean4:v4.34.0\n' > lean-toolchain
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("lakefile.toml")
+          lines = p.read_text().splitlines()
+          out = []
+          i = 0
+          while i < len(lines):
+              if lines[i] == 'rev = "288f16d9a07189233a9bc5e1c143c38d1f3f4d37"':
+                  out.append('rev = "5ed2965256430c3649e86755f9576b54eca72435"')
+                  i += 1
+              elif (i + 3 < len(lines)
+                    and lines[i] == '[[require]]'
+                    and lines[i + 1] == 'name = "PrimeNumberTheoremAnd"'
+                    and lines[i + 2].startswith('git = ')
+                    and lines[i + 3] == 'rev = "main"'):
+                  out.extend(['[[require]]','name = "PrimeNumberTheoremAnd"','path = "../pnta"'])
+                  i += 4
+              else:
+                  out.append(lines[i])
+                  i += 1
+          p.write_text('\n'.join(out) + '\n')
+          PY
+          rm -f lake-manifest.json
+          cp ../launcher/candidate/*.lean .
+          cp ../launcher/run_remote_compile_v13.sh .
+          chmod +x run_remote_compile_v13.sh
+
+      - name: Install Lean 4.34.0
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/lean" --version
+
+      - name: Resolve frozen dependencies
+        working-directory: work
+        run: lake update
+
+      - name: Restore Mathlib cache
+        working-directory: work
+        run: lake exe cache get
+
+      - name: Build stable dependency closure
+        working-directory: work
+        run: |
+          lake build Mathlib PrimeGapsTheory.NumberTheory.DyadicPNT PrimeGapsTheory.NumberTheory.PrimeCountingInterval
+
+      - name: Compile full V13 chain
+        working-directory: work
+        run: ./run_remote_compile_v13.sh
+
+      - name: Forbidden-token audit on canonical V13 proof chain
+        working-directory: work
+        run: |
+          set -e
+          files=(
+            JSP001007_WP4N_DyadicPNTLowerBound_V5.lean
+            JSP001007_ClusterGapEngine1202_Candidate.lean
+            JSP001007_WP4C_PrimeBoxPigeonhole_StaticAuditV4.lean
+            JSP001007_WP4C_Arch51_PrimeBox_StaticAuditV4.lean
+            JSP001007_WP4P_ClusterToCounterexample_Kernel_V6.lean
+            JSP001007_WP4P_PNT_to_ClusterData_Adapter_V4.lean
+            JSP001007_WP4Q_SourceFaithful_FinalWrapper_V13.lean
+            JSP001007_Master_SourceFaithful_V13.lean
+          )
+          if grep -nE '\b(sorry|admit|unsafe|native_decide|skipKernelTC)\b' "${files[@]}"; then
+            echo "Forbidden proof-bypass token found."
+            exit 1
+          fi
+          echo "No forbidden proof-bypass tokens found."
+
+      - name: Independent Lean kernel checker
+        working-directory: work
+        env:
+          LEAN_NUM_THREADS: "1"
+        run: lake env leanchecker JSP001007_Master_SourceFaithful_V13
+
+      - name: Record audit metadata
+        if: always()
+        run: |
+          mkdir -p audit_evidence
+          cp pnta-SHA256SUMS audit_evidence/ 2>/dev/null || true
+          cp -r work/jsp_logs audit_evidence/ 2>/dev/null || true
+          {
+            echo "Candidate commit: ${GITHUB_SHA}"
+            echo "PrimeGapsLib: 1faa7b14e82ddebc2772dfb9153922f01b106477"
+            echo "PrimeNumberTheoremAnd source tree commit: 09617eb72103690ef22b027548c60a6126e2ef6d"
+            echo "Mathlib: 5ed2965256430c3649e86755f9576b54eca72435"
+            work/.lake/packages/mathlib/.lake/build/bin/cache --help >/dev/null 2>&1 || true
+            "$HOME/.elan/bin/lean" --version
+          } > audit_evidence/metadata.txt
+
+      - name: Upload V13 audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsp001007-v13-robust-audit
+          path: audit_evidence/
+          if-no-files-found: warn
