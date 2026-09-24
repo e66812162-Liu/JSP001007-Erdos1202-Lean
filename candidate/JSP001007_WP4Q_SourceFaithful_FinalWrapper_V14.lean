@@ -14,7 +14,7 @@ Relative to V12:
 * retain literal exact half-cardinality as 2 * card = p - 1.
 
 This makes the positive proposition weaker/easier to satisfy than V12 in both
-domain-convention respects.  Its negation is therefore a stronger and safer
+domain-convention respects. Its negation is therefore a stronger and safer
 counterexample theorem.
 -/
 
@@ -45,9 +45,9 @@ theorem erdos1202_negative_public_statement_v14 :
 
   obtain ⟨D, _⟩ := clusterData_arch51_exists k
 
-  let n := D.n
-  let p := D.p
-  let A := D.A
+  let n : ℕ := D.n
+  let p : Fin k → ℕ := D.p
+  let A : (i : Fin k) → Finset (ZMod (p i)) := D.A
 
   have hnpos : 0 < n := by
     dsimp [n, ClusterData.n]
@@ -65,10 +65,11 @@ theorem erdos1202_negative_public_statement_v14 :
           Real.rpow (n : ℝ) (1 - (1 : ℝ) / 3) := by
     intro i
     have h23 :
-        (p i : ℝ) < Real.rpow (n : ℝ) ((2 : ℝ) / 3) := by
-      exact cube_lt_square_to_rpow_two_thirds_kernel
+        (D.p i : ℝ) <
+          Real.rpow (D.n : ℝ) ((2 : ℝ) / 3) :=
+      cube_lt_square_to_rpow_two_thirds_kernel
         (D.hpow (D.p i) (D.p_mem i))
-    simpa only [show (1 : ℝ) - 1 / 3 = 2 / 3 by norm_num] using h23
+    simpa [n, p, show (1 : ℝ) - 1 / 3 = 2 / 3 by norm_num] using h23
 
   have hcard : ∀ i, 2 * (A i).card = p i - 1 := by
     intro i
@@ -76,13 +77,13 @@ theorem erdos1202_negative_public_statement_v14 :
 
   have hbad := hk n p A hnpos hp hmono hsmall hcard
 
-  have hNat : D.n < 3 * D.remaining.card := D.remaining_large
-  have hReal : (D.n : ℝ) < 3 * (D.remaining.card : ℝ) := by
-    exact_mod_cast hNat
+  have hlargeNat : D.n < 3 * D.remaining.card := D.remaining_large
 
   have hlarge :
       (n : ℝ) / 3 <
         ((remaining1202SourceV14 n p A).card : ℝ) := by
+    have hreal : (D.n : ℝ) < 3 * (D.remaining.card : ℝ) := by
+      exact_mod_cast hlargeNat
     dsimp [n, p, A]
     simpa [remaining1202SourceV14, ClusterData.remaining] using
       (show (D.n : ℝ) / 3 < D.remaining.card by nlinarith)
