@@ -122,6 +122,18 @@ jobs:
         run: |
           lake env leanchecker JSP001007_ClosedDeathAudit_Semantics2
 
+      - name: Compile positive-n source-domain audit
+        working-directory: work
+        run: |
+          lake env lean -o .lake/build/lib/lean/JSP001007_ClosedDeathAudit_PositiveN.olean JSP001007_ClosedDeathAudit_PositiveN.lean
+
+      - name: Kernel check positive-n audit
+        working-directory: work
+        env:
+          LEAN_NUM_THREADS: "1"
+        run: |
+          lake env leanchecker JSP001007_ClosedDeathAudit_PositiveN
+
       - name: Record exact Lean version
         working-directory: work
         run: |
