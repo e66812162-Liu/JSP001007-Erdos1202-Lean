@@ -1,0 +1,161 @@
+name: JSP-001007 V14 Pinned Historical Replay (SHA256 enforced)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - audit-v14-historical-replay-20261018
+    paths:
+      - ".github/workflows/replay-v14-historical-digest.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact frozen V14 proof
+        uses: actions/checkout@v4
+        with:
+          ref: 2ebb7d6826d0bee041ba89a61804bcf45e2dc7c7
+          path: launcher
+
+      - name: Confirm exact source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C launcher rev-parse HEAD)" = "2ebb7d6826d0bee041ba89a61804bcf45e2dc7c7"
+
+      - name: Checkout frozen PrimeGapsLib
+        uses: actions/checkout@v4
+        with:
+          repository: AxiomMath/PrimeGapsLib
+          ref: 1faa7b14e82ddebc2772dfb9153922f01b106477
+          path: work
+
+      - name: Fetch and ENFORCE historical PNT archive checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 "https://github.com/AxiomMath/PrimeNumberTheoremAnd/archive/09617eb72103690ef22b027548c60a6126e2ef6d.tar.gz" -o pnta.tar.gz
+          printf '%s  %s\n' "9ed07e290dfdaec7d0ae09e71e31530880421d2f54b9fd44c20585bba17227c8" "pnta.tar.gz" | sha256sum --check
+          mkdir -p evidence
+          sha256sum pnta.tar.gz | tee evidence/pnta-SHA256SUMS.txt
+          tar -xzf pnta.tar.gz
+          mv PrimeNumberTheoremAnd-09617eb72103690ef22b027548c60a6126e2ef6d pnta
+
+      - name: Materialize frozen Lean 4.34 dependency graph
+        working-directory: work
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "1faa7b14e82ddebc2772dfb9153922f01b106477"
+          printf 'leanprover/lean4:v4.34.0\n' > lean-toolchain
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("lakefile.toml")
+          lines = p.read_text().splitlines()
+          out = []
+          mathlib_replaced = 0
+          pnt_replaced = 0
+          i = 0
+          while i < len(lines):
+              if lines[i] == 'rev = "288f16d9a07189233a9bc5e1c143c38d1f3f4d37"':
+                  out.append('rev = "5ed2965256430c3649e86755f9576b54eca72435"')
+                  mathlib_replaced += 1
+                  i += 1
+              elif (i + 3 < len(lines)
+                    and lines[i] == '[[require]]'
+                    and lines[i+1] == 'name = "PrimeNumberTheoremAnd"'
+                    and lines[i+2].startswith('git = ')
+                    and lines[i+3] == 'rev = "main"'):
+                  out.extend(['[[require]]', 'name = "PrimeNumberTheoremAnd"', 'path = "../pnta"'])
+                  pnt_replaced += 1
+                  i += 4
+              else:
+                  out.append(lines[i])
+                  i += 1
+          assert mathlib_replaced == 1, f"Mathlib pin replacements: {mathlib_replaced}"
+          assert pnt_replaced == 1, f"PNT pin replacements: {pnt_replaced}"
+          p.write_text('\n'.join(out) + '\n')
+          PY
+          rm -f lake-manifest.json
+          cp ../launcher/candidate/*.lean .
+          cp ../launcher/run_remote_compile_v14.sh .
+          chmod +x run_remote_compile_v14.sh
+
+      - name: Install Lean 4.34.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve and validate dependency commits
+        working-directory: work
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake update
+          test "$(git -C .lake/packages/mathlib rev-parse HEAD)" = "5ed2965256430c3649e86755f9576b54eca72435"
+          lake exe cache get
+
+      - name: Build dependency closure
+        working-directory: work
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake build Mathlib PrimeGapsTheory.NumberTheory.DyadicPNT PrimeGapsTheory.NumberTheory.PrimeCountingInterval
+
+      - name: Recompile exact V14 proof
+        working-directory: work
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./run_remote_compile_v14.sh
+
+      - name: Scan JSP proof chain for bypass tokens
+        working-directory: work
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(JSP001007_WP4N_DyadicPNTLowerBound_V5.lean JSP001007_ClusterGapEngine1202_Candidate.lean JSP001007_WP4C_PrimeBoxPigeonhole_StaticAuditV4.lean JSP001007_WP4C_Arch51_PrimeBox_StaticAuditV4.lean JSP001007_WP4P_ClusterToCounterexample_Kernel_V6.lean JSP001007_WP4P_PNT_to_ClusterData_Adapter_V4.lean JSP001007_WP4Q_SourceFaithful_FinalWrapper_V14.lean JSP001007_Master_SourceFaithful_V14.lean)
+          if grep -nE '\b(sorry|admit|unsafe|native_decide|skipKernelTC)\b' "${files[@]}"; then
+            echo "Forbidden proof bypass token detected"
+            exit 1
+          fi
+          echo "No forbidden bypass tokens in V14 source chain"
+
+      - name: Kernel check exact V14 theorem
+        working-directory: work
+        shell: bash
+        env:
+          LEAN_NUM_THREADS: "1"
+        run: |
+          set -euo pipefail
+          lake env leanchecker JSP001007_Master_SourceFaithful_V14
+
+      - name: Record provenance and logs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p evidence
+          cp -r work/jsp_logs evidence/ 2>/dev/null || true
+          {
+            echo "Proven theorem source: 2ebb7d6826d0bee041ba89a61804bcf45e2dc7c7"
+            echo "PrimeGapsLib: 1faa7b14e82ddebc2772dfb9153922f01b106477"
+            echo "PrimeNumberTheoremAnd source: 09617eb72103690ef22b027548c60a6126e2ef6d"
+            echo "Expected PNT archive SHA256: 9ed07e290dfdaec7d0ae09e71e31530880421d2f54b9fd44c20585bba17227c8"
+            echo "Mathlib: 5ed2965256430c3649e86755f9576b54eca72435"
+            echo "Workflow run: ${GITHUB_RUN_ID} attempt ${GITHUB_RUN_ATTEMPT}"
+          } > evidence/provenance.txt
+          if [ -x "$HOME/.elan/bin/lean" ]; then "$HOME/.elan/bin/lean" --version >> evidence/provenance.txt; fi
+
+      - name: Upload replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsp001007-v14-sha256-enforced-replay
+          path: evidence/
